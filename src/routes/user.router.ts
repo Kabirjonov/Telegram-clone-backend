@@ -1,0 +1,10 @@
+import { Router } from "express";
+import userController from "../controller/user.controller";
+const router = Router();
+router.get("/contacts", userController.getContacts);
+router.post("/create-contact", userController.createContact);
+router.post("/send-otp", userController.sendOtp);
+router.put("/profile", userController.updateProfile);
+router.put("/email", userController.updateEmail);
+router.delete("/delete/:userId", userController.deleteUser);
+export default router;
