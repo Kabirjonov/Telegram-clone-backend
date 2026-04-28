@@ -66,7 +66,7 @@ class UserService {
 		if (!email) {
 			throw BaseError.BadRequest("User with this email does not exist");
 		}
-		return await userModel.findOneAndUpdate({ email }, { isVerofied: true });
+		return await userModel.findOneAndUpdate({ email }, { isVerified: true });
 	}
 
 	async createContact(email: string, userId: string) {
@@ -97,14 +97,16 @@ class UserService {
 	}
 
 	async updateProfile(userId: string, payload: any) {
-		return await userModel.findByIdAndUpdate(userId, payload, { new: true });
+		return await userModel.findByIdAndUpdate(userId, payload, {
+			returnDocument: "after",
+		});
 	}
 	async sendOtp(email: string) {
 		const existUser = await userModel.findOne({ email });
-		// if (existUser)
-		// 	throw BaseError.BadRequest("User with this email already exist");
+		if (existUser)
+			throw BaseError.BadRequest("User with this email already exist");
 		await mailService.sendOtp(email);
-		return;
+		return { email };
 	}
 	async updateEmail(userId: string, email: string, otp: string) {
 		const result = await mailService.verifyOtp(email, otp);
@@ -112,7 +114,7 @@ class UserService {
 			const user = await userModel.findByIdAndUpdate(
 				userId,
 				{ email },
-				{ new: true },
+				{ returnDocument: "after" },
 			);
 			return user;
 		}

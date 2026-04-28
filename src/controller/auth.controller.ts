@@ -6,7 +6,6 @@ import { userService } from "../service/user.service";
 class AuthController {
 	async login(req: Request, res: Response) {
 		const { email } = req.body;
-		console.log("email login", req.body);
 		const user = await authService.login(email);
 		return res.send({
 			message: "Your account created successfully",
@@ -21,7 +20,7 @@ class AuthController {
 			await userService.updateVerify(email);
 		}
 		return res.send({
-			message: "verifi",
+			message: "Your accound verifyed seccessfully",
 			body: { email },
 			status: 200,
 		});

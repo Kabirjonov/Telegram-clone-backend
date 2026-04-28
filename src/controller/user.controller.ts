@@ -13,9 +13,9 @@ class UserController {
 	}
 
 	async createContact(req: Request, res: Response) {
-		const user = "69b16c18c55c3d510c31089b";
+		const userId = "69b16c18c55c3d510c31089b";
 		const { email } = req.body;
-		const result = await userService.createContact(email, user);
+		const result = await userService.createContact(email, userId);
 		return res.send({
 			message: "Contact succesfully added",
 			body: result,
@@ -24,8 +24,8 @@ class UserController {
 	}
 
 	async updateProfile(req: Request, res: Response) {
-		const { userId, ...payload } = req.body;
-		console.log("paylad", payload);
+		const { ...payload } = req.body;
+		const userId = req.user?.id; // auth middlewaredan kelgan user id sini olish
 		const result = await userService.updateProfile(userId, payload);
 		return res.send({
 			message: "Profile succesfully updated",
@@ -34,19 +34,18 @@ class UserController {
 		});
 	}
 	async sendOtp(req: Request, res: Response) {
-		const { email } = req.body;
+		const email = req.body.email;
 		const result = await userService.sendOtp(email);
 		return res.send({
-			message: "Otp seccesfully sended",
+			message: `We sent otp to ${email}`,
 			body: result,
 			status: 200,
 		});
 	}
 	async updateEmail(req: Request, res: Response) {
 		const { email, otp } = req.body;
-		const user = "69b8700e61e0dd9579a27573"; // bu yerda auth middlewaredan kelgan req.user._id boiyicha
-
-		const result = await userService.updateEmail(user, email, otp);
+		const userId = req.user?.id;
+		const result = await userService.updateEmail(userId, email, otp);
 		return res.send({
 			message: "Profile succesfully updated",
 			body: result,
@@ -54,7 +53,7 @@ class UserController {
 		});
 	}
 	async deleteUser(req: Request, res: Response) {
-		const userId = req.params.userId as string;
+		const userId = req.user?.id;
 		const result = await userService.deleteUser(userId);
 		return res.send({
 			message: "Profile succesfully deleted",
