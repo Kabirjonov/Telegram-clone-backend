@@ -4,7 +4,8 @@ const user = "69b154e4a1faa73b8113d505"; // bu yerda auth middlewaredan kelgan r
 
 class UserController {
 	async getContacts(req: Request, res: Response) {
-		const result = await userService.getContacts(user);
+		const userId = req.user?._id;
+		const result = await userService.getContacts(userId);
 		return res.send({
 			message: "All your contacts",
 			body: result,
@@ -13,7 +14,7 @@ class UserController {
 	}
 
 	async createContact(req: Request, res: Response) {
-		const userId = "69b16c18c55c3d510c31089b";
+		const userId = req.user?._id;
 		const { email } = req.body;
 		const result = await userService.createContact(email, userId);
 		return res.send({
