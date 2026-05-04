@@ -13,7 +13,10 @@ class MessageController {
 		});
 	}
 	async create(req: Request, res: Response) {
-		const user = await messageService.createMessage(req.body);
+		const user = await messageService.createMessage({
+			...req.body,
+			sender: req.user?._id,
+		});
 		return res.send({
 			message: "Message created successfully",
 			body: user,
@@ -40,8 +43,8 @@ class MessageController {
 	}
 	async getMessage(req: Request, res: Response) {
 		const contactId = req.params.contactId as string;
-		// const contactId: string = "69b16c18c55c3d510c31089b";
-		const message = await messageService.getMessage(contactId, user);
+		const userId = req.user?._id;
+		const message = await messageService.getMessage(contactId, userId);
 		return res.send({
 			message: "You get them message",
 			body: message,

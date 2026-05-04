@@ -93,7 +93,11 @@ class UserService {
 		contact.contacts.push(user._id);
 		await user.save();
 		await contact.save();
-		return user;
+
+		return {
+			...contact.toObject(),
+			lastMessage: null,
+		};
 	}
 
 	async updateProfile(userId: string, payload: any) {

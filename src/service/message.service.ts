@@ -13,12 +13,12 @@ class MessageService {
 	}
 	async createMessage(body: MessageDto) {
 		const message = await messageModel.create(body);
-		const user = await messageModel
+		const populatedMessage = await messageModel
 			.findById(message._id)
 			.populate({ path: "sender", select: "email" })
 			.populate({ path: "receiver", select: "email" });
 
-		return { message, user };
+		return populatedMessage;
 	}
 	async reaction(messageId: string, reaction: string) {
 		return await messageModel.findByIdAndUpdate(
