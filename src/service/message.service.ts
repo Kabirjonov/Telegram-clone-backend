@@ -1,6 +1,7 @@
 import { MessageStatus } from "../consts/constats";
 import BaseError from "../Error/BaseError";
 import messageModel from "../models/message.model";
+import userModel from "../models/user.model";
 import { MessageDto } from "../types";
 
 class MessageService {
@@ -17,8 +18,9 @@ class MessageService {
 			.findById(message._id)
 			.populate({ path: "sender", select: "email" })
 			.populate({ path: "receiver", select: "email" });
-
-		return populatedMessage;
+		const recieverUser = await userModel.findById(message.receiver);
+		const senderUser = await userModel.findById(message.sender);
+		return { populatedMessage, sender: senderUser, reciever: recieverUser };
 	}
 	async reaction(messageId: string, reaction: string) {
 		return await messageModel.findByIdAndUpdate(

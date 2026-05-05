@@ -13,13 +13,13 @@ class MessageController {
 		});
 	}
 	async create(req: Request, res: Response) {
-		const user = await messageService.createMessage({
+		const result = await messageService.createMessage({
 			...req.body,
 			sender: req.user?._id,
 		});
 		return res.send({
 			message: "Message created successfully",
-			body: user,
+			body: result,
 			status: 200,
 		});
 	}
