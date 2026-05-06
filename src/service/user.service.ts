@@ -6,42 +6,18 @@ import { MessageDto } from "../types";
 import { mailService } from "./mail.service";
 
 class UserService {
-	// async getContacts(userId: string) {
-	// 	if (!userId) {
-	// 		throw BaseError.BadRequest("User not found");
-	// 	}
-
-	// 	const user = await userModel.findById(userId).populate("contacts");
-
-	// 	const allContacts = user.contacts.map(contact => contact.toObject());
-	// 	for (const contact of allContacts) {
-	// 		const lastMessage = await messageModel
-	// 			.findOne({
-	// 				$or: [
-	// 					{ sender: userId, receiver: contact._id },
-	// 					{ sender: contact._id, receiver: userId },
-	// 				],
-	// 			})
-	// 			.populate({ path: "sender" })
-	// 			.populate({ path: "receiver" })
-	// 			.sort({ createAt: -1 });
-	// 		contact.lastMessage = lastMessage;
-	// 	}
-	// 	return allContacts;
-	// }
 	async getContacts(userId: string) {
-		if (!userId) {
-			throw BaseError.BadRequest("User not found");
+		const contacts = await userModel.findById(userId).populate("contacts");
+		const allContacts = (contacts?.contacts as any[]).map(contact =>
+			contact.toObject(),
+		);
+
+		if (!allContacts) {
+			throw new Error("getContacts error, allcontact is failed");
 		}
 
-		const user = await userModel.findById(userId).populate("contacts");
-
-		if (!user) {
-			throw BaseError.BadRequest("User not found");
-		}
-
-		const allContacts = await Promise.all(
-			user.contacts.map(async (contact: any) => {
+		await Promise.all(
+			allContacts.map(async contact => {
 				const lastMessage = await messageModel
 					.findOne({
 						$or: [
@@ -52,16 +28,45 @@ class UserService {
 					.populate("sender")
 					.populate("receiver")
 					.sort({ createdAt: -1 });
-
-				const contactObj = contact.toObject();
-				contactObj.lastMessage = lastMessage;
-
-				return contactObj;
+				contact.lastMessage = lastMessage;
 			}),
 		);
 
 		return allContacts;
 	}
+	// async getContacts(userId: string) {
+	// 	if (!userId) {
+	// 		throw BaseError.BadRequest("User not found");
+	// 	}
+
+	// 	const user = await userModel.findById(userId).populate("contacts");
+
+	// 	if (!user) {
+	// 		throw BaseError.BadRequest("User not found");
+	// 	}
+
+	// 	const allContacts = await Promise.all(
+	// 		user.contacts.map(async (contact: any) => {
+	// 			const lastMessage = await messageModel
+	// 				.findOne({
+	// 					$or: [
+	// 						{ sender: userId, receiver: contact._id },
+	// 						{ sender: contact._id, receiver: userId },
+	// 					],
+	// 				})
+	// 				.populate("sender")
+	// 				.populate("receiver")
+	// 				.sort({ createdAt: -1 });
+
+	// 			const contactObj = contact.toObject();
+	// 			contactObj.lastMessage = lastMessage;
+
+	// 			return contactObj;
+	// 		}),
+	// 	);
+
+	// 	return allContacts;
+	// }
 	async updateVerify(email: string) {
 		if (!email) {
 			throw BaseError.BadRequest("User with this email does not exist");

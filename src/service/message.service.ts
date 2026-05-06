@@ -5,12 +5,17 @@ import userModel from "../models/user.model";
 import { MessageDto } from "../types";
 
 class MessageService {
-	async read(messageId: string) {
-		return await messageModel.findByIdAndUpdate(
-			messageId,
-			{ status: MessageStatus.READ },
-			{ new: true },
-		);
+	async read(messages: any) {
+		const allMessages = [];
+		for (const message of messages) {
+			const updateMessage = await messageModel.findByIdAndUpdate(
+				message?._id,
+				{ status: MessageStatus.READ },
+				{ new: true },
+			);
+			allMessages.push(updateMessage);
+		}
+		return allMessages;
 	}
 	async createMessage(body: MessageDto) {
 		const message = await messageModel.create(body);
@@ -18,9 +23,13 @@ class MessageService {
 			.findById(message._id)
 			.populate({ path: "sender", select: "email" })
 			.populate({ path: "receiver", select: "email" });
-		const recieverUser = await userModel.findById(message.receiver);
+		const receiverUser = await userModel.findById(message.receiver);
 		const senderUser = await userModel.findById(message.sender);
-		return { populatedMessage, sender: senderUser, reciever: recieverUser };
+		return {
+			newMessage: populatedMessage,
+			sender: senderUser,
+			receiver: receiverUser,
+		};
 	}
 	async reaction(messageId: string, reaction: string) {
 		return await messageModel.findByIdAndUpdate(

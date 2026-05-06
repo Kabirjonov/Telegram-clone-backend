@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
 import messageService from "../service/message.service";
-const user = "69b154e4a1faa73b8113d505"; // bu yerda auth middlewaredan kelgan req.user._id boiyicha
 
 class MessageController {
 	async read(req: Request, res: Response) {
-		const messageId = req.params.messageId as string;
-		const result = await messageService.read(messageId);
+		const { messages } = req.body;
+		const result = await messageService.read(messages);
 		return res.send({
 			message: "All your contacts",
 			body: result,
