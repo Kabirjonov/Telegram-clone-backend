@@ -22,6 +22,7 @@ class MailService {
     }
     async sendOtp(to) {
         const otp = String(Math.floor(100000 + Math.random() * 900000));
+        console.log({ "Sending otp": otp });
         const hashedOtp = await bcrypt.hash(otp.toString(), 10);
         await this.transporter.sendMail({
             from: process.env.SMTP_USER,

@@ -20,7 +20,7 @@ class AuthController {
             await user_service_1.userService.updateVerify(email);
         }
         return res.send({
-            message: "verifi",
+            message: "Your accound verifyed seccessfully",
             body: { email },
             status: 200,
         });

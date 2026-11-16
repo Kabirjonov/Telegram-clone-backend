@@ -1,7 +1,8 @@
 import { Router } from "express";
 import userController from "../controller/user.controller";
-const router = Router();
 import { authMiddleware } from "../middlewares/auth.middlewate";
+
+const router = Router();
 router.get("/contacts", authMiddleware, userController.getContacts);
 router.post("/create-contact", authMiddleware, userController.createContact);
 router.post("/send-otp", authMiddleware, userController.sendOtp);

@@ -19,6 +19,9 @@ class BaseError extends Error {
     static NotFound(message = "Resource not found", errors = []) {
         return new BaseError(404, message, errors);
     }
+    static UnAuthenticated(message = "Authentication required", errors = []) {
+        return new BaseError(401, message, errors);
+    }
 }
 exports.default = BaseError;
 //# sourceMappingURL=BaseError.js.map

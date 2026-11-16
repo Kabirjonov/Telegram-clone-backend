@@ -4,41 +4,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userService = void 0;
-const constats_1 = require("../consts/constats");
 const BaseError_1 = __importDefault(require("../Error/BaseError"));
 const message_model_1 = __importDefault(require("../models/message.model"));
 const user_model_1 = __importDefault(require("../models/user.model"));
+const mail_service_1 = require("./mail.service");
 class UserService {
-    // async getContacts(userId: string) {
-    // 	if (!userId) {
-    // 		throw BaseError.BadRequest("User not found");
-    // 	}
-    // 	const user = await userModel.findById(userId).populate("contacts");
-    // 	const allContacts = user.contacts.map(contact => contact.toObject());
-    // 	for (const contact of allContacts) {
-    // 		const lastMessage = await messageModel
-    // 			.findOne({
-    // 				$or: [
-    // 					{ sender: userId, receiver: contact._id },
-    // 					{ sender: contact._id, receiver: userId },
-    // 				],
-    // 			})
-    // 			.populate({ path: "sender" })
-    // 			.populate({ path: "receiver" })
-    // 			.sort({ createAt: -1 });
-    // 		contact.lastMessage = lastMessage;
-    // 	}
-    // 	return allContacts;
-    // }
     async getContacts(userId) {
-        if (!userId) {
-            throw BaseError_1.default.BadRequest("User not found");
+        const contacts = await user_model_1.default.findById(userId).populate("contacts");
+        const allContacts = (contacts?.contacts).map(contact => contact.toObject());
+        if (!allContacts) {
+            throw new Error("getContacts error, allcontact is failed");
         }
-        const user = await user_model_1.default.findById(userId).populate("contacts");
-        if (!user) {
-            throw BaseError_1.default.BadRequest("User not found");
-        }
-        const allContacts = await Promise.all(user.contacts.map(async (contact) => {
+        await Promise.all(allContacts.map(async (contact) => {
             const lastMessage = await message_model_1.default
                 .findOne({
                 $or: [
@@ -49,48 +26,42 @@ class UserService {
                 .populate("sender")
                 .populate("receiver")
                 .sort({ createdAt: -1 });
-            const contactObj = contact.toObject();
-            contactObj.lastMessage = lastMessage;
-            return contactObj;
+            contact.lastMessage = lastMessage;
         }));
         return allContacts;
     }
+    // async getContacts(userId: string) {
+    // 	if (!userId) {
+    // 		throw BaseError.BadRequest("User not found");
+    // 	}
+    // 	const user = await userModel.findById(userId).populate("contacts");
+    // 	if (!user) {
+    // 		throw BaseError.BadRequest("User not found");
+    // 	}
+    // 	const allContacts = await Promise.all(
+    // 		user.contacts.map(async (contact: any) => {
+    // 			const lastMessage = await messageModel
+    // 				.findOne({
+    // 					$or: [
+    // 						{ sender: userId, receiver: contact._id },
+    // 						{ sender: contact._id, receiver: userId },
+    // 					],
+    // 				})
+    // 				.populate("sender")
+    // 				.populate("receiver")
+    // 				.sort({ createdAt: -1 });
+    // 			const contactObj = contact.toObject();
+    // 			contactObj.lastMessage = lastMessage;
+    // 			return contactObj;
+    // 		}),
+    // 	);
+    // 	return allContacts;
+    // }
     async updateVerify(email) {
         if (!email) {
             throw BaseError_1.default.BadRequest("User with this email does not exist");
         }
-        return await user_model_1.default.findOneAndUpdate({ email }, { isVerofied: true });
-    }
-    async getMessage(contactId, user) {
-        if (!contactId) {
-            throw BaseError_1.default.BadRequest("Id not found");
-        }
-        await message_model_1.default.updateMany({
-            sender: contactId,
-            receiver: user,
-            status: constats_1.MessageStatus.SENT,
-        }, { status: constats_1.MessageStatus.READ });
-        const message = await message_model_1.default
-            .find({
-            $or: [
-                { sender: user, receiver: contactId },
-                { sender: contactId, receiver: user },
-            ],
-        })
-            .populate({ path: "sender", select: "email" })
-            .populate({ path: "receiver", select: "email" });
-        if (message.length === 0) {
-            throw BaseError_1.default.BadRequest("Message not found");
-        }
-        return message;
-    }
-    async createMessage(body) {
-        const message = await message_model_1.default.create(body);
-        const user = await message_model_1.default
-            .findById(message._id)
-            .populate({ path: "sender", select: "email" })
-            .populate({ path: "receiver", select: "email" });
-        return { message, user };
+        return await user_model_1.default.findOneAndUpdate({ email }, { isVerified: true });
     }
     async createContact(email, userId) {
         if (!email) {
@@ -114,10 +85,35 @@ class UserService {
         contact.contacts.push(user._id);
         await user.save();
         await contact.save();
-        return user;
+        return {
+            ...contact.toObject(),
+            lastMessage: null,
+        };
     }
-    async updateMessage(text, messageId) {
-        return await message_model_1.default.findByIdAndUpdate(messageId, { text }, { new: true });
+    async updateProfile(userId, payload) {
+        return await user_model_1.default.findByIdAndUpdate(userId, payload, {
+            returnDocument: "after",
+        });
+    }
+    async sendOtp(email) {
+        const existUser = await user_model_1.default.findOne({ email });
+        if (existUser)
+            throw BaseError_1.default.BadRequest("User with this email already exist");
+        await mail_service_1.mailService.sendOtp(email);
+        return { email };
+    }
+    async updateEmail(userId, email, otp) {
+        const result = await mail_service_1.mailService.verifyOtp(email, otp);
+        if (result) {
+            const user = await user_model_1.default.findByIdAndUpdate(userId, { email }, { returnDocument: "after" });
+            return user;
+        }
+        throw BaseError_1.default.BadRequest("Otp validation failed");
+    }
+    async deleteUser(userId) {
+        if (!userId)
+            throw BaseError_1.default.BadRequest("Id not found");
+        return await user_model_1.default.findByIdAndDelete(userId);
     }
 }
 exports.userService = new UserService();

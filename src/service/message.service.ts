@@ -25,6 +25,9 @@ class MessageService {
 			.populate({ path: "receiver", select: "email" });
 		const receiverUser = await userModel.findById(message.receiver);
 		const senderUser = await userModel.findById(message.sender);
+		console.log("receiverUser", receiverUser);
+		console.log("senderUser", senderUser);
+		console.log("populatedMessage", populatedMessage);
 		return {
 			newMessage: populatedMessage,
 			sender: senderUser,

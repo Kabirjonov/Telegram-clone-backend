@@ -5,11 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const user_controller_1 = __importDefault(require("../controller/user.controller"));
+const auth_middlewate_1 = require("../middlewares/auth.middlewate");
 const router = (0, express_1.Router)();
-router.get("/contacts", user_controller_1.default.getContacts);
-router.get("/message/:contactId", user_controller_1.default.getMessage);
-router.post("/create-message", user_controller_1.default.createMessage);
-router.post("/create-contact", user_controller_1.default.createContact);
-router.put("/message/:messsageId", user_controller_1.default.updateMessage);
+router.get("/contacts", auth_middlewate_1.authMiddleware, user_controller_1.default.getContacts);
+router.post("/create-contact", auth_middlewate_1.authMiddleware, user_controller_1.default.createContact);
+router.post("/send-otp", auth_middlewate_1.authMiddleware, user_controller_1.default.sendOtp);
+router.put("/profile", auth_middlewate_1.authMiddleware, user_controller_1.default.updateProfile);
+router.put("/email", auth_middlewate_1.authMiddleware, user_controller_1.default.updateEmail);
+router.delete("/delete", auth_middlewate_1.authMiddleware, user_controller_1.default.deleteUser);
 exports.default = router;
 //# sourceMappingURL=user.router.js.map
